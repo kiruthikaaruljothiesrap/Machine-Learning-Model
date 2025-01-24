@@ -1,0 +1,47 @@
+# Step 1: Import libraries
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Step 2: Load the spam-like dataset (subset from 20 Newsgroups)
+categories = ['soc.religion.christian', 'talk.religion.misc', 'sci.space', 'comp.graphics']  # Spam-like categories
+newsgroups = fetch_20newsgroups(subset='train', categories=categories)
+
+# Convert to DataFrame for easier handling
+df = pd.DataFrame({'text': newsgroups.data, 'target': newsgroups.target})
+
+# Step 3: Preprocess the data
+# Convert text data into numerical features using TF-IDF
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(df['text'])  # Features (numerical representation of text)
+y = df['target']  # Target labels (0 or 1)
+
+# Step 4: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 5: Train a Naive Bayes model
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# Step 6: Evaluate the model
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Print accuracy and classification report
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+print(f"Classification Report:\n{classification_report(y_test, y_pred)}")
+
+# Confusion Matrix Visualization
+cm = confusion_matrix(y_test, y_pred)
+
+# Create the heatmap for the confusion matrix
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=newsgroups.target_names, yticklabels=newsgroups.target_names)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix")
+plt.show()
